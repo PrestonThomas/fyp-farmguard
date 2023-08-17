@@ -1,0 +1,5 @@
+{% for camera_name, status in camera_statuses.items() %}
+<li>
+    <p>{{ camera_name }}: {{ status }} <a class="view-feed-link" href="{{ url_for('video_viewer', camera_name=camera_name) }}">View Feed</a></p>
+</li>
+{% endfor %}

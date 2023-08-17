@@ -1,0 +1,3 @@
+[amqtt.broker.plugins]
+topic_checker_plugin = topic_checker_plugin:TopicEventPlugin
+

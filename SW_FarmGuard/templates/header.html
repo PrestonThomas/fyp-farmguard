@@ -1,0 +1,81 @@
+<!-- templates/header.html -->
+<!DOCTYPE html>
+<html lang="en">
+{% include 'base.html' %}
+<body>
+    <div class="mui-appbar">
+        <table width="100%">
+            <tr style="vertical-align: middle;">
+                <td class="mui--appbar-height mui--text-display3">FarmGuard</td>
+                <td id="system-stats" class="mui--appbar-height mui--text-caption" align="middle" hx-get="/api/system_stats"
+                    hx-trigger="every 1s" hx-swap="innerHTML">
+                </td>
+                <td id="current-time" class="mui--appbar-height mui--text-display1" align="right">{{ dt }}</td>
+            </tr>
+        </table>
+    </div>
+    <ul class="mui-tabs__bar">
+        <li><a class="{% if request.path == '/' %}current-page{% endif %}" href="{{ url_for('home') }}">Dashboard</a></li>
+        <li><a class="{% if request.path == '/temperature' %}current-page{% endif %}" href="{{ url_for('temperature') }}">Temperature Monitoring</a></li>
+        <li><a class="{% if request.path == '/gallery' %}current-page{% endif %}" href="{{ url_for('gallery') }}">Detection Gallery</a></li>
+    </ul>
+</body>
+</html>
+<script>
+    function updateTime() {
+      const currentTimeElement = document.getElementById('current-time');
+      const currentDate = new Date();
+      currentTimeElement.textContent = currentDate.toLocaleString(); 
+    }
+    updateTime(); 
+    setInterval(updateTime, 1000); 
+
+    var logDiv;
+    var logHistory;
+    document.addEventListener('DOMContentLoaded', function() {
+        logDiv = document.getElementById('console');
+        logHistory = JSON.parse(localStorage.getItem('logHistory')) || [];
+    if (logDiv == null) {
+            return
+        } else {
+            logHistory.forEach(log => {
+                logDiv.innerHTML += log + '<br>';
+            });
+
+        }
+        logDiv.scrollTop = logDiv.scrollHeight; 
+    });
+
+    
+    var wsSocket = io.connect(); 
+
+    function handleNewLogMessage(topic, message) {
+    var now = new Date();
+    var options = { year: 'numeric', month: '2-digit', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+    var formattedDate = now.toLocaleString(undefined, options); 
+
+    var logMessage = formattedDate + ": " + message;
+
+    console.log('Handling new log message:', logMessage);
+    
+    if (logDiv !== null) {
+        logDiv.innerHTML += logMessage + '<br>';
+        logDiv.scrollTop = logDiv.scrollHeight; 
+    }
+    
+    logHistory.push(logMessage); 
+    localStorage.setItem('logHistory', JSON.stringify(logHistory)); // Save log history to localStorage
+    }
+
+    // Set up wsSocket.IO event handlers
+    wsSocket.on('temperature_alarm', data => handleNewLogMessage('temperature_alarm', data));
+    wsSocket.on('device_status', data => handleNewLogMessage('device_status', data));
+    wsSocket.on('intrusion_human', data => handleNewLogMessage('intrusion_human', data));
+    wsSocket.on('intrusion_animal', data => handleNewLogMessage('intrusion_animal', data));
+
+    function clearLogHistory() {
+        localStorage.removeItem('logHistory'); 
+        logDiv.innerHTML = ''; 
+        logHistory = []; 
+    }
+</script>

@@ -1,0 +1,87 @@
+{% include 'header.html' %}
+
+<body>
+    <div class="mui-container-fluid">
+        <h2>Camera Statuses:</h2>
+        <ul id="cameraStatusList" hx-swap="innerHTML" hx-trigger="every 1s" hx-get="/camera_statuses">
+            {% for camera_name, status in camera_statuses.items() %}
+            <li>
+                <p>{{ camera_name }}: {{ status }} <a class="view-feed-link"
+                        href="{{ url_for('video_viewer', camera_name=camera_name) }}">View Feed</a></p>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <h2>Log:</h2>
+        <button class="mui-btn mui-btn--primary" hx-post="/clear_log_history" hx-target="#console" hx-swap="outerHTML" onclick="clearLogHistory()">
+            Clear Log History
+        </button>
+        
+        <button class="mui-btn mui-btn--primary" id="refreshLogButton">
+            Refresh Log
+        </button>        
+        <div id="console" class="mui-panel"></div>
+        <div id="image-modal" class="mui-modal">
+            <div class="mui-modal-content">
+                <span class="mui-modal-close">&times;</span>
+                <img id="modal-image" alt="Image" style="width:100%">
+            </div>
+        </div>
+        <script>
+            function showModal(imageSrc) {
+                var modal = document.getElementById("image-modal");
+                var modalImage = document.getElementById("modal-image");
+                modalImage.src = imageSrc;
+                modal.style.display = "block";
+            }
+            var modal = document.getElementById('image-modal');
+
+            var span = document.getElementsByClassName("mui-modal-close")[0];
+
+            span.onclick = function () {
+                modal.style.display = "none";
+            }
+
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            function appendLogMessage(logMessage) {
+                var logDiv = document.getElementById('console');
+                
+               var messageDiv = document.createElement('div');
+                
+               messageDiv.innerHTML = logMessage;
+                
+               logDiv.appendChild(messageDiv);
+                
+               logDiv.scrollTop = logDiv.scrollHeight;
+            }
+
+           function onNewLogMessageReceived(logMessage) {
+                console.log('Handling new log message:', logMessage);
+                
+               appendLogMessage(logMessage);
+            }
+
+            logHistory.forEach(log => {
+                logDiv.outerHTML += JSON.stringify(log) + '<br>';
+            });
+            logDiv.scrollTop = logDiv.scrollHeight;
+
+            function clearLogHistory() {
+                localStorage.removeItem('logHistory'); 
+                if (logDiv !== null) {
+                    logDiv.outerHTML = ''; 
+                }
+                logHistory = []; 
+            }
+        </script>
+
+
+    </div>
+</body>
+
+</html>
