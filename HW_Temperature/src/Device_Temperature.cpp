@@ -69,19 +69,17 @@ void reconnectMQTT() {
 }
 
 void loop() {
-  // Read temperature data from the MLX90640 sensor
   if (mlx.getFrame(frame) != 0) {
     Serial.println("Failed to read MLX90640 frame");
     return;
   }
 
-  // Create JSON payload
   doc.clear();
   JsonArray temperatures = doc.createNestedArray("temperatures");
   for (uint8_t h = 0; h < 24; h++) {
     JsonArray row = temperatures.createNestedArray();
     for (uint8_t w = 0; w < 32; w++) {
-      float t = frame[h * 32 + w];  // removed the rounding
+      float t = frame[h * 32 + w];
       row.add(t);
     }
   }
@@ -90,7 +88,7 @@ void loop() {
   for (uint8_t w = 0; w < 32; w++) {
     JsonArray column = columnData.createNestedArray();
     for (uint8_t h = 0; h < 24; h++) {
-      float t = frame[h * 32 + w];  // removed the rounding
+      float t = frame[h * 32 + w];
       column.add(t);
     }
   }
@@ -99,14 +97,12 @@ void loop() {
 
   while (!client.publish("temperatures", jsonString, 0)) {
     Serial.println("Failed to publish, retrying...");
-    delay(5000); // Wait for 5 seconds before retrying
+    delay(5000);
     if (!client.connected()) {
-      // Attempt to reconnect to the MQTT server
       reconnectMQTT();
     }
   }
   
   Serial.println("Published successfully");
   delay(500);
-
 }

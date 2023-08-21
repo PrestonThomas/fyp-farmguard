@@ -20,7 +20,6 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 void callback(char *topic, byte *payload, unsigned int length) {
-    // Handle temperature_alarm topic
     if (strcmp(topic, "temperature_alarm") == 0) {
         Serial.print("Alert! Temperature alarm received in topic: ");
         Serial.println(topic);
@@ -31,20 +30,16 @@ void callback(char *topic, byte *payload, unsigned int length) {
         Serial.println();
         Serial.println("-----------------------");
 
-        // Display alert message on LCD
         lcd.clear();
         lcd.setCursor(0,0);
         lcd.print("High Temperature");
         lcd.setCursor(0,1);
         lcd.print("Detected!");
 
-        // Play a tone for temperature alarm
         tone(12, 1000, 2000);
         delay(1000);          
         tone(12, 500, 2000);  
-        delay(1000);          
-                
-
+        delay(1000);                       
     } 
     // Handle intrusion_alarm topic
     else if (strcmp(topic, "intrusion_human") == 0) {
